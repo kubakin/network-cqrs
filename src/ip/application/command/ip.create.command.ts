@@ -1,4 +1,5 @@
 import { ICommand } from '@nestjs/cqrs';
+import { AssignmentType } from '../../domain/enitites/assignment';
 
 export class IpCreateCommand implements ICommand {
   constructor(
@@ -8,6 +9,8 @@ export class IpCreateCommand implements ICommand {
     readonly family: number,
     readonly primary: boolean,
     readonly subscriptionId: string | null,
+    readonly assignmentId?: string | null,
+    readonly assignmentType?: AssignmentType | null,
     readonly address?: string,
     readonly prefix?: string,
   ) {}

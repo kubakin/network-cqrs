@@ -13,7 +13,6 @@ export class SubscriptionCreateHandler
   }
 
   execute(command: SubscriptionCreateCommand): Promise<any> {
-    console.log('before publish');
     return this.amqpConnection.publish('client', this.route, {
       name: this.route,
       data: command.create,

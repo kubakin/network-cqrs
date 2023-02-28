@@ -13,9 +13,12 @@ export class UnassignRequestHandler
 
   // @Transactional()
   async execute(command: UnassignRequestCommand): Promise<void> {
-    const ip = await this.ipRepository.findById(command.ipId);
+    const ip = await this.ipRepository.findUserIpById(
+      command.id,
+      command.userId,
+    );
 
-    ip.unnassignRequest();
+    ip.unnassign();
 
     await this.ipRepository.save(ip);
 

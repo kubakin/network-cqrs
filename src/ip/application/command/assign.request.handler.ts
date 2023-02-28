@@ -13,7 +13,10 @@ export class AssignRequestHandler
 
   // @Transactional()
   async execute(command: AssignRequestCommand): Promise<void> {
-    const ip = await this.ipRepository.findById(command.id);
+    const ip = await this.ipRepository.findUserIpById(
+      command.id,
+      command.userId,
+    );
 
     ip.assign(command.assignmentId, command.assignmentType as any);
 

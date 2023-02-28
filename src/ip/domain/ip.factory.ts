@@ -12,6 +12,7 @@ type CreateOrderOptions = Readonly<{
   address?: string;
   primary: boolean;
   subscriptionId: string | null;
+  assignment?: Assignment;
 }>;
 
 type CreateAddressOptions = Readonly<{
@@ -20,7 +21,6 @@ type CreateAddressOptions = Readonly<{
   dataCenter: string;
   family: number;
   address: string;
-  assignment: Assignment | null;
   primary: boolean;
   subscriptionId: string | null;
 }>;
@@ -32,12 +32,12 @@ export class IpFactory {
     return this.eventPublisher.mergeObjectContext(
       new IpDomain({
         ...options,
+        assignment: options.assignment,
         address: new Address(options.family, options.address),
         status: 'created',
         deleted: false,
         subscriptionId: options.subscriptionId,
         initialized: false,
-        assignment: null,
       }),
     );
   }
@@ -51,7 +51,7 @@ export class IpFactory {
         deleted: false,
         subscriptionId: options.subscriptionId,
         initialized: true,
-        assignment: options.assignment,
+        assignment: null,
       }),
     );
   }

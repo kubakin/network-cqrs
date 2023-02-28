@@ -8,9 +8,19 @@ import { readConnection } from '../../../../lib/db.module';
 @Injectable()
 export class IpQueryImplement implements IpQuery {
   async find(query: FindIpListQuery): Promise<FindIpListResult> {
-    const result = await readConnection
-      .getRepository(IpEntity)
-      .find({ where: { deleted: false, initialized: true } });
+    const result = await readConnection.getRepository(IpEntity).find({
+      where: {
+        deleted: false,
+        initialized: true,
+        primary: false,
+        ...(query.assignmentId && { assignmentId: query.assignmentId }),
+        ...(query.assignmentType && { assignmentType: query.assignmentType }),
+        ...(query.userId && { assignmentId: query.userId }),
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
     return {
       result: result.map((ip) => {
         return {
@@ -21,7 +31,7 @@ export class IpQueryImplement implements IpQuery {
           address: ip.address,
           family: ip.family,
           dataCenter: ip.dataCenter,
-          dns_name: 'dnc',
+          dns_name: '',
         };
       }),
     };

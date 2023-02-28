@@ -1,4 +1,5 @@
 import {
+  DynamicModule,
   Global,
   Module,
   OnApplicationBootstrap,
@@ -13,7 +14,8 @@ import {
   Repository,
   SelectQueryBuilder,
 } from 'typeorm';
-import { IpEntity } from '../src/ip/infrastructure/ip.entity';
+import { IpEntity as Ip } from '../src/ip/infrastructure/ip.entity';
+import { Configuration } from '../src/config';
 
 interface WriteConnection {
   readonly startTransaction: (
@@ -45,17 +47,24 @@ export let writeConnection = {} as WriteConnection;
 export let readConnection = {} as ReadConnection;
 
 class DatabaseService implements OnApplicationBootstrap, OnModuleDestroy {
-  private readonly dataSource = new DataSource({
-    type: 'postgres',
-    entities: [IpEntity],
-    logging: false,
-    host: 'localhost',
-    port: 3032,
-    database: 'app',
-    username: 'app',
-    password: 'secret',
-    synchronize: true,
-  });
+  configuration: Configuration;
+  private readonly dataSource: DataSource;
+
+  constructor() {
+    this.configuration = new Configuration();
+    this.dataSource = new DataSource({
+      type: 'postgres',
+      entities: [Ip],
+      entityPrefix: 'network',
+      logging: this.configuration.DATABASE_LOGGING,
+      host: this.configuration.DATABASE_HOST,
+      port: this.configuration.DATABASE_PORT,
+      database: this.configuration.DATABASE_NAME,
+      username: this.configuration.DATABASE_USER,
+      password: this.configuration.DATABASE_PASSWORD,
+      synchronize: this.configuration.DATABASE_SYNC,
+    });
+  }
 
   async onApplicationBootstrap(): Promise<void> {
     await this.dataSource.initialize();
@@ -74,4 +83,13 @@ class DatabaseService implements OnApplicationBootstrap, OnModuleDestroy {
 @Module({
   providers: [DatabaseService],
 })
-export class DatabaseModule {}
+export class DatabaseModule {
+  static forRoot(): DynamicModule {
+    const providers = [DatabaseService];
+    return {
+      module: DatabaseModule,
+      providers: providers,
+      exports: providers,
+    };
+  }
+}

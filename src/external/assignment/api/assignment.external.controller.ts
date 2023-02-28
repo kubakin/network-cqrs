@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { CommandBus } from '@nestjs/cqrs';
 import { generateString } from '@nestjs/typeorm';
-import { IpCreateDto } from '../../../ip/api/ip/ip.dto';
 import { IpCreateCommand } from '../../../ip/application/command/ip.create.command';
+import { AssignmentResetCommand } from '../../../ip/application/command/assignment.reset.command';
 
 @Injectable()
 export class AssignmentExternalController {
@@ -18,21 +18,27 @@ export class AssignmentExternalController {
     },
   })
   async networkRpc(msg) {
-    if (msg.subject === 'primary.ip.get-out') {
-      const data: IpCreateDto = msg.payload;
+    if (msg.subject === 'ip.create') {
+      const data: IpCreateCommand = msg.payload;
       const result = await this.commandBus.execute(
         new IpCreateCommand(
           generateString(),
           data.userId,
           data.dataCenter,
           data.family,
-          true,
-          null,
+          data.primary,
+          data.subscriptionId,
+          data.assignmentId,
+          data.assignmentType,
         ),
       );
       return { data: result };
     } else if (msg.subject === 'customer.resource.check') {
-      console.log(msg);
+      return { data: true };
+    } else if (msg.subject === 'customer.ip.reset') {
+      await this.commandBus.execute(
+        new AssignmentResetCommand(msg.payload.assignmentId as string),
+      );
       return { data: true };
     }
   }

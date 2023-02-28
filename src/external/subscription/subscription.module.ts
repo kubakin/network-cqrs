@@ -4,6 +4,7 @@ import { SubscriptionExternalService } from './external/subscription.external.se
 import { SubscriptionCancelHandler } from './command/subscription.cancel.handler';
 import { SubscriptionCreateHandler } from './command/subscription.create.handler';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+import { SubscriptionDeleteProcessStartedHandler } from './event/subscription.delete.process.started.handler';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
     SubscriptionExternalService,
     SubscriptionCancelHandler,
     SubscriptionCreateHandler,
+    SubscriptionDeleteProcessStartedHandler,
   ],
 })
 export class SubscriptionModule {}

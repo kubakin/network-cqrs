@@ -10,6 +10,6 @@ export class FindIpListHandler implements IQueryHandler<FindIpListQuery> {
   @Inject(InjectionToken.IP_QUERY) ipQuery: IpQuery;
 
   async execute(query: FindIpListQuery): Promise<FindIpListResult> {
-    return this.ipQuery.find({});
+    return this.ipQuery.find(query);
   }
 }

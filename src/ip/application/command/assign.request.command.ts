@@ -5,5 +5,6 @@ export class AssignRequestCommand implements ICommand {
     readonly id: string,
     readonly assignmentId: string,
     readonly assignmentType: string,
+    readonly userId: string,
   ) {}
 }

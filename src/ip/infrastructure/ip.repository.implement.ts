@@ -18,6 +18,13 @@ export class IpRepositoryImplement implements IpRepository {
     await writeConnection.manager.getRepository(IpEntity).save(entities);
   }
 
+  async findUserIpById(id: string, userId: string): Promise<Ip | null> {
+    const entity = await writeConnection.manager
+      .getRepository(IpEntity)
+      .findOneBy({ id, userId, deleted: false, initialized: true });
+    return entity ? this.entityToModel(entity) : null;
+  }
+
   async findById(id: string): Promise<Ip | null> {
     const entity = await writeConnection.manager
       .getRepository(IpEntity)
@@ -28,7 +35,7 @@ export class IpRepositoryImplement implements IpRepository {
   async findAll(): Promise<Ip[]> {
     const entities = await writeConnection.manager
       .getRepository(IpEntity)
-      .find({ where: { deleted: false } });
+      .find({ where: { deleted: false, initialized: true } });
     return entities.map((entity) => this.entityToModel(entity));
   }
 
@@ -36,7 +43,7 @@ export class IpRepositoryImplement implements IpRepository {
     const entities = await writeConnection.manager
       .getRepository(IpEntity)
       .find({
-        where: { deleted: false, initialized: true, status: In(status) },
+        where: { initialized: true, status: In(status) },
       });
     return entities.map((entity) => this.entityToModel(entity));
   }
@@ -45,6 +52,13 @@ export class IpRepositoryImplement implements IpRepository {
     const entities = await writeConnection.manager
       .getRepository(IpEntity)
       .findBy({ address });
+    return entities.map((entity) => this.entityToModel(entity));
+  }
+
+  async findByAssignment(assignmentId: string): Promise<Ip[]> {
+    const entities = await writeConnection.manager
+      .getRepository(IpEntity)
+      .find({ where: { assignmentId: assignmentId } });
     return entities.map((entity) => this.entityToModel(entity));
   }
 
@@ -59,6 +73,8 @@ export class IpRepositoryImplement implements IpRepository {
     const properties = JSON.parse(JSON.stringify(model)) as any;
     return {
       ...properties,
+      assignmentId: properties?.assignment?.assignmentId,
+      assignmentType: properties?.assignment?.assignmentType,
       id: properties.id,
       address: properties.address.address,
       family: properties.address.family,

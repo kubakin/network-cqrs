@@ -1,4 +1,10 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 export enum AssignmentType {
   vm = 'vm',
@@ -30,7 +36,7 @@ export class IpCreateAnnouncedEntity {
   assignmentType?: AssignmentType;
 }
 
-@Entity('network_ip')
+@Entity('ip')
 export class IpEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -77,4 +83,10 @@ export class IpEntity extends BaseEntity {
 
   @Column({ default: false })
   deleted: boolean;
+
+  @CreateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+  })
+  readonly createdAt: Date;
 }

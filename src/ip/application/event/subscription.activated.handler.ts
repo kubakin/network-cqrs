@@ -25,6 +25,8 @@ export class SubscriptionActivatedHandler
         ip.getAddress().family,
         false,
         ip.getSubscriptionId(),
+        ip.getAssignment().assignmentId,
+        ip.getAssignment().assignmentType,
       ),
     );
   }

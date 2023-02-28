@@ -14,5 +14,8 @@ export class SubscriptionCanceledHandler
   async handle(event: SubscriptionCanceledEvent): Promise<void> {
     const ip = await this.ipRepository.findBySubscriptionId(event.id);
     if (!ip) return;
+    ip.delete();
+    await this.ipRepository.save(ip);
+    ip.commit();
   }
 }

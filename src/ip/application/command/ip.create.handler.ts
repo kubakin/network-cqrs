@@ -37,9 +37,14 @@ export class IpCreateHandler
     const ip = await this.ipFactory.createAddress({
       ...command,
       address: createdAddress.data.address,
-      assignment: null,
     });
+    ip.ipCreated();
+    if (command.assignmentId) {
+      ip.assign(command.assignmentId, command.assignmentType);
+    }
     await this.ipRepository.save(ip);
+
+    ip.commit();
     return {
       id: command.id,
       address: createdAddress.data.address,

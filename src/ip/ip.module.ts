@@ -14,13 +14,15 @@ import { SubscriptionCanceledHandler } from './application/event/subscription.ca
 import { AuthorizationOnlyModule } from '../../lib/authorization/src';
 import { IpCreateHandler } from './application/command/ip.create.handler';
 import { NetboxService } from './infrastructure/integration/netbox.service';
-import { NetboxApi } from '../../lib/netbox-api/src';
+import { NetboxApi, NetboxApiModule } from '../../lib/netbox-api/src';
 import { IpManagerService } from './application/services/ip.manager.service';
 import { AssignConfirmedHandler } from './application/event/assign.confirmed.handler';
 import { UnassignConfirmedHandler } from './application/event/unassign.confirmed.handler';
 import { AssignFailedHandler } from './application/event/assign.failed.handler';
 import { UnassignFailedHandler } from './application/event/unassign.failed.handler';
 import { AssignRequestHandler } from './application/command/assign.request.handler';
+import { AssignmentResetHandler } from './application/command/assignment.reset.handler';
+import { DeleteRequestHandler } from './application/command/delete.request.handler';
 
 const infrastructure = [
   {
@@ -47,11 +49,13 @@ const applications = [
   AssignFailedHandler,
   UnassignFailedHandler,
   AssignRequestHandler,
+  AssignmentResetHandler,
+  DeleteRequestHandler,
 ];
 const api = [IpController];
 
 @Module({
-  imports: [CqrsModule, AuthorizationOnlyModule],
+  imports: [CqrsModule, AuthorizationOnlyModule, NetboxApiModule],
   controllers: [...api],
   providers: [
     NetboxService,

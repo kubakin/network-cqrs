@@ -4,6 +4,11 @@ import { Address } from './enitites/address';
 import { CreatedOrderEvent } from './event/created.order.event';
 import { UnnassignRequestedEvent } from './event/unassign.requested.event';
 import { AssignRequestedEvent } from './event/assign.requested.event';
+import { CreatedIpEvent } from './event/created.ip.event';
+import { BadRequestException, Logger } from '@nestjs/common';
+import { generateString } from '@nestjs/typeorm';
+import { SubscriptionDeleteProcessStartedEvent } from './event/subscription.delete.process.started.event';
+import { InitiatorType } from '../../external/subscription/subscription.messages';
 
 export type IpEssentialProperties = Readonly<
   Required<{
@@ -29,16 +34,17 @@ export type IpProperties = IpEssentialProperties &
   Required<IptOptionalProperties>;
 
 export class Ip {
-  initialize: (address: string) => void;
   unnassign: () => void;
   assign: (assignmentId: string, assignmentType: AssignmentType) => void;
   unnassignRequest: () => void;
   assignRequest: () => void;
   commit: () => void;
-  created: () => void;
+  orderCreated: () => void;
+  ipCreated: () => void;
   getAddress: () => Address;
   getDataCenter: () => string;
   getId: () => string;
+  getAssignment: () => Assignment;
   getOwner: () => string;
   getSubscriptionId: () => string;
   delete: () => void;
@@ -46,6 +52,7 @@ export class Ip {
   assignFailed: () => void;
   unassignConfirmed: () => void;
   assignConfirmed: () => void;
+  deleteProcessStart: () => string | undefined;
 }
 
 export class IpDomain extends AggregateRoot implements Ip {
@@ -59,15 +66,14 @@ export class IpDomain extends AggregateRoot implements Ip {
   dataCenter: string;
   initialized: boolean;
   deleted: boolean;
+  private readonly logger = new Logger(IpDomain.name);
 
   constructor(properties: IpProperties) {
     super();
     Object.assign(this, properties);
   }
 
-  initialize(address: string) {}
-
-  created() {
+  orderCreated() {
     this.apply(
       new CreatedOrderEvent(
         this.id,
@@ -79,37 +85,96 @@ export class IpDomain extends AggregateRoot implements Ip {
     );
   }
 
+  ipCreated() {
+    this.apply(
+      new CreatedIpEvent(
+        this.id,
+        this.address.family,
+        this.address.address,
+        this.userId,
+      ),
+    );
+  }
+
   assignConfirmed() {
+    this.logger.debug(`${this.address.address} assign confirmed`);
     this.status = 'active';
   }
 
   unassignConfirmed() {
+    if (this.primary || this.status === 'deleting') {
+      this.deleteConfirmed();
+      return;
+    }
+    this.logger.debug(`${this.address.address} unassign confirmed`);
+
     this.assignment.reset();
+
     this.status = 'active';
   }
 
+  deleteConfirmed() {
+    this.logger.debug(`${this.address.address} delete confirmed`);
+
+    this.status = 'deleted';
+  }
+
   assignFailed() {
+    this.logger.error(`${this.address.address} assign failed`);
+
     this.assignment.reset();
     this.status = 'active';
   }
 
   unassignFailed() {
+    this.logger.error(`${this.address.address} unassign failed`);
+
     this.status = 'active';
   }
 
   unnassign() {
+    if (!this?.assignment?.assignmentId) {
+      throw new BadRequestException('Ip without assignment');
+    }
+    this.status = 'unassigning';
     this.unnassignRequest();
   }
 
   assign(assignmentId: string, assignmentType: AssignmentType) {
+    if (this?.assignment?.assignmentId) {
+      throw new BadRequestException('Already assigned');
+    }
     this.assignment = new Assignment(assignmentId, assignmentType);
     this.status = 'assigning';
     this.assignRequest();
   }
 
+  deleteProcessStart() {
+    if (this.primary) throw new BadRequestException('Cant delete primary ip');
+    const invoiceId = generateString();
+    if (this.subscriptionId) {
+      this.apply(
+        new SubscriptionDeleteProcessStartedEvent({
+          id: this.subscriptionId,
+          invoiceId: invoiceId,
+          initiator: InitiatorType.USER,
+        }),
+      );
+      return invoiceId;
+    } else {
+      this.delete();
+      return undefined;
+    }
+  }
+
   delete() {
-    this.status = 'deleting';
-    this.unnassignRequest();
+    this.deleted = true;
+    if (!this?.assignment?.assignmentId) {
+      this.status = 'deleted';
+    } else {
+      this.status = 'deleting';
+      this.unnassignRequest();
+    }
   }
 
   unnassignRequest() {
@@ -152,6 +217,10 @@ export class IpDomain extends AggregateRoot implements Ip {
 
   getOwner(): string {
     return this.userId;
+  }
+
+  getAssignment(): Assignment {
+    return this.assignment;
   }
 
   getSubscriptionId(): string {
