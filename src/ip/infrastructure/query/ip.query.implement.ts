@@ -13,9 +13,7 @@ export class IpQueryImplement implements IpQuery {
         deleted: false,
         initialized: true,
         primary: false,
-        ...(query.assignmentId && { assignmentId: query.assignmentId }),
-        ...(query.assignmentType && { assignmentType: query.assignmentType }),
-        ...(query.userId && { assignmentId: query.userId }),
+        ...query,
       },
       order: {
         createdAt: 'DESC',

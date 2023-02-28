@@ -72,7 +72,7 @@ export class IpController {
     type: FindIpListResult,
   })
   async ipList(@UserId() userId: string, @Query() filter: IpFilter) {
-    const query = new FindIpListQuery(filter);
+    const query = new FindIpListQuery({ ...filter, userId: userId });
     const result: any = await this.queryBus.execute(query);
     return result.result;
   }

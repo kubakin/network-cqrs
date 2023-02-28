@@ -21,6 +21,26 @@ export class PrefixRepositoryImplement implements PrefixRepository {
     return entity ? this.entityToModel(entity) : null;
   }
 
+  async findBySubscriptionId(subscriptionId: string) {
+    const entity = await writeConnection.manager
+      .getRepository(PrefixEntity)
+      .findOneBy({ subscriptionId });
+    return entity ? this.entityToModel(entity) : null;
+  }
+
+  async findUserPrefixInDataCenter(dataCenter: string, userId: string) {
+    const entity = await writeConnection.manager
+      .getRepository(PrefixEntity)
+      .findOne({
+        where: {
+          dataCenter,
+          userId,
+          initialized: true,
+        },
+      });
+    return entity ? this.entityToModel(entity) : null;
+  }
+
   private modelToEntity(model: Prefix): PrefixEntity {
     const properties = JSON.parse(JSON.stringify(model)) as any;
     return {

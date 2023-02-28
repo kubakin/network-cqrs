@@ -1,6 +1,7 @@
 import { AggregateRoot } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 import { generateString } from '@nestjs/typeorm';
+import { OrderCreatedEvent } from './event/order.created.event';
 
 export type PrefixEssentialProperties = Readonly<
   Required<{
@@ -28,10 +29,12 @@ export type PrefixProperties = PrefixEssentialProperties &
 
 export class Prefix {
   commit: () => void;
-  orderCreated: () => void;
+  orderCreated: (firstOrder?: boolean) => void;
   prefixCreated: () => void;
   delete: () => void;
   deleteProcessStart: () => string | undefined;
+  getSubscriptionId: () => string;
+  startAnnouncingProcess: () => void;
 }
 
 export class PrefixDomain extends AggregateRoot implements Prefix {
@@ -54,11 +57,44 @@ export class PrefixDomain extends AggregateRoot implements Prefix {
     Object.assign(this, properties);
   }
 
-  orderCreated() {}
+  orderCreated(firstOrder = false) {
+    this.apply(
+      new OrderCreatedEvent(
+        generateString(),
+        this.userId,
+        this.subscriptionId,
+        firstOrder,
+        this.dataCenter,
+        this.version,
+      ),
+    );
+  }
 
   prefixCreated() {}
 
   deleteConfirmed() {}
+
+  startAnnouncingProcess() {
+    this.initialized = true;
+    this.status = 'announcing';
+  }
+
+  reject() {
+    this.status = 'rejected';
+    this.deleted = true;
+  }
+
+  announce() {
+    this.status = 'active';
+  }
+
+  block() {
+    this.isBlocked = true;
+  }
+
+  unblock() {
+    this.isBlocked = false;
+  }
 
   deleteProcessStart() {
     const invoiceId = generateString();
@@ -66,4 +102,8 @@ export class PrefixDomain extends AggregateRoot implements Prefix {
   }
 
   delete() {}
+
+  getSubscriptionId() {
+    return this.subscriptionId;
+  }
 }

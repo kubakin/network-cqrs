@@ -14,8 +14,9 @@ import {
   Repository,
   SelectQueryBuilder,
 } from 'typeorm';
-import { IpEntity as Ip } from '../src/ip/infrastructure/ip.entity';
+import { IpEntity } from '../src/ip/infrastructure/ip.entity';
 import { Configuration } from '../src/config';
+import { PrefixEntity } from '../src/prefix/infrastructure/prefix.entity';
 
 interface WriteConnection {
   readonly startTransaction: (
@@ -54,8 +55,8 @@ class DatabaseService implements OnApplicationBootstrap, OnModuleDestroy {
     this.configuration = new Configuration();
     this.dataSource = new DataSource({
       type: 'postgres',
-      entities: [Ip],
-      entityPrefix: 'network',
+      entities: [IpEntity, PrefixEntity],
+      entityPrefix: 'network_',
       logging: this.configuration.DATABASE_LOGGING,
       host: this.configuration.DATABASE_HOST,
       port: this.configuration.DATABASE_PORT,
