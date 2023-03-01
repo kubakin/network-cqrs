@@ -10,19 +10,24 @@ export class PrefixAdminQueryImplement implements AdminPrefixQuery {
   async find(
     query: FindAdminPrefixListQuery,
   ): Promise<FindAdminPrefixListResult> {
+    const page = query.pagination.page || 1;
     const result = await readConnection.getRepository(PrefixEntity).find({
       where: {
         deleted: false,
         initialized: true,
         status: 'active',
-        ...query,
+        ...query.filter,
       },
       order: {
         status: 'DESC',
         createdAt: 'ASC',
       },
+      skip: query.pagination.size ? query.pagination.size * (page - 1) : 0,
+      take: query.pagination.size,
     });
     return {
+      size: +result.length,
+      page: +query.pagination.page || 1,
       result: result.map((prefix) => {
         return {
           id: prefix.id,

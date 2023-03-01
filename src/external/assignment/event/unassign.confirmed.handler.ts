@@ -11,6 +11,7 @@ export class UnassignConfirmedHandler {
   @RabbitSubscribe({
     exchange: 'client',
     routingKey: ['ipam.event.ip.customer.unassign.confirmed'],
+    queue: 'network_assignment',
     queueOptions: {
       autoDelete: true,
     },

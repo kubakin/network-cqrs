@@ -11,6 +11,7 @@ export class AssignFailedHandler {
   @RabbitSubscribe({
     exchange: 'client',
     routingKey: ['ipam.event.ip.customer.assign.failed'],
+    queue: 'network_assignment',
     queueOptions: {
       autoDelete: true,
     },

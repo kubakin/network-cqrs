@@ -5,6 +5,10 @@ import { InjectionToken } from '../injection.token';
 import { IpRepository } from '../../domain/ip.repository';
 import { IpFactory } from '../../domain/ip.factory';
 import { NetboxService } from '../../infrastructure/integration/netbox.service';
+import {
+  RedisLock,
+  RedisLockService,
+} from '@huangang/nestjs-simple-redis-lock/index';
 
 @CommandHandler(IpCreateCommand)
 export class IpCreateHandler
@@ -14,8 +18,15 @@ export class IpCreateHandler
   private readonly ipRepository: IpRepository;
   @Inject() private readonly ipFactory: IpFactory;
 
-  constructor(private readonly dcimService: NetboxService) {}
+  constructor(
+    private readonly dcimService: NetboxService,
+    protected lockService: RedisLockService,
+  ) {}
 
+  @RedisLock(
+    (target, param: IpCreateCommand) =>
+      `IP[${param.family}][${param.dataCenter}]`,
+  )
   async execute(command: IpCreateCommand): Promise<any> {
     let address: string;
     if (command.address) {

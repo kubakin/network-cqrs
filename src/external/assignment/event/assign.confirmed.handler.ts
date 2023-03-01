@@ -11,6 +11,7 @@ export class AssignConfirmedHandler {
   @RabbitSubscribe({
     exchange: 'client',
     routingKey: ['ipam.event.ip.customer.assign.confirmed'],
+    queue: 'network_assignment',
     queueOptions: {
       autoDelete: true,
     },

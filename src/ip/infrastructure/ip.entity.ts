@@ -3,7 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
 } from 'typeorm';
 
 export enum AssignmentType {
@@ -38,7 +38,7 @@ export class IpCreateAnnouncedEntity {
 
 @Entity('ip')
 export class IpEntity extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid')
   id: string;
 
   @Column('inet', { nullable: true, unique: false })

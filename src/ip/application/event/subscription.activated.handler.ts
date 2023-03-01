@@ -15,6 +15,7 @@ export class SubscriptionActivatedHandler
 
   // @Transactional()
   async handle(event: SubscriptionActivatedEvent): Promise<void> {
+    console.log('SubscriptionActivatedEvent');
     const ip = await this.ipRepository.findBySubscriptionId(event.id);
     if (!ip) return;
     await this.commandBus.execute(

@@ -15,6 +15,7 @@ export class SubscriptionExternalService {
   @RabbitSubscribe({
     exchange: 'client',
     routingKey: ['balance.event.subscription.*'],
+    queue: 'network_subscription',
     queueOptions: {
       autoDelete: true,
     },

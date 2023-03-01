@@ -49,7 +49,7 @@ export class IpManagerService {
     }
 
     deletingAddresses.map((ip) => {
-      ip.unnassignRequest();
+      ip.deleteRequest();
       ip.commit();
     });
   }

@@ -5,6 +5,35 @@ import { NetboxApi } from '../../../../lib/netbox-api/src';
 export class NetboxService {
   constructor(private netboxApi: NetboxApi) {}
 
+  async onApplicationBootstrap() {
+    return;
+    return;
+    const ips = await this.netboxApi.ipam.ipamIpAddressesList({
+      limit: 0,
+      parent: '193.242.153.0/24',
+    });
+    ips.data.results.map(async (ip: any) => {
+      if (ip.custom_fields.ip_instance_id) {
+        await this.netboxApi.ipam.ipamIpAddressesDelete({ id: ip.id });
+      }
+    });
+  }
+
+  async delete(id: number) {
+    await this.netboxApi.ipam.ipamIpAddressesDelete({ id });
+  }
+
+  async deleteByInstance(id: string) {
+    const result = await this.netboxApi.ipam.ipamIpAddressesList(
+      {},
+      { query: { cf_ip_instance_id: id } },
+    );
+    const ip = result.data.results?.[0];
+    if (ip) {
+      await this.delete(ip.id);
+    }
+  }
+
   async createAddress(address: string, instanceId: string) {
     return await this.netboxApi.ipam.ipamIpAddressesCreate({
       data: {

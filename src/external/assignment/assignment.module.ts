@@ -2,12 +2,9 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { UnassignRequestedHandler } from './event/unassign.requested.handler';
-import { UnassignConfirmedHandler } from './event/unassign.confirmed.handler';
-import { AssignConfirmedHandler } from './event/assign.confirmed.handler';
-import { UnassignFailedHandler } from './event/unassign.failed.handler';
-import { AssignFailedHandler } from './event/assign.failed.handler';
 import { AssignRequestedHandler } from './event/assign.requested.handler';
 import { AssignmentExternalController } from './api/assignment.external.controller';
+import { AssignmentProcessHandler } from './event/assignment.process.handler';
 
 @Module({
   imports: [
@@ -25,12 +22,13 @@ import { AssignmentExternalController } from './api/assignment.external.controll
   ],
   controllers: [],
   providers: [
-    AssignFailedHandler,
-    UnassignFailedHandler,
+    // AssignFailedHandler,
+    // UnassignFailedHandler,
     AssignRequestedHandler,
     UnassignRequestedHandler,
-    UnassignConfirmedHandler,
-    AssignConfirmedHandler,
+    // UnassignConfirmedHandler,
+    // AssignConfirmedHandler,
+    AssignmentProcessHandler,
     AssignmentExternalController,
   ],
 })

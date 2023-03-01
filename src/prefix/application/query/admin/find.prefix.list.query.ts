@@ -1,7 +1,16 @@
-export class FindAdminPrefixListQuery {
+import { ApiProperty } from '@nestjs/swagger';
+import { BasePaginationClass } from '../../../../../lib/pagination/base.pagination.class';
+
+export class FindAdminPrefixListFilter {
+  @ApiProperty({ required: false })
   readonly status?: string;
-  readonly page?: number;
-  readonly size?: number;
+}
+
+export class FindAdminPrefixListQuery {
+  @ApiProperty({ required: false, type: FindAdminPrefixListFilter })
+  readonly filter?: FindAdminPrefixListFilter;
+  @ApiProperty({ required: false, type: BasePaginationClass })
+  readonly pagination: BasePaginationClass;
 
   constructor(params: FindAdminPrefixListQuery) {
     Object.assign(this, params);

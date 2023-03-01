@@ -1,7 +1,7 @@
 import { IQueryResult } from '@nestjs/cqrs';
 import { ApiProperty } from '@nestjs/swagger';
 
-class FindIpListItem {
+class FindUserIpListItem {
   @ApiProperty()
   readonly id: string;
   @ApiProperty()
@@ -20,16 +20,11 @@ class FindIpListItem {
   readonly dataCenter: string;
 }
 
-export class FindIpListResponse<T> {
-  @ApiProperty()
-  list: T[];
-}
+export class FindUserIpListResult implements IQueryResult {
+  @ApiProperty({ type: FindUserIpListItem, isArray: true })
+  result: FindUserIpListItem[];
 
-export class FindIpListResult implements IQueryResult {
-  @ApiProperty({ type: FindIpListItem, isArray: true })
-  result: FindIpListItem[];
-
-  constructor(list: FindIpListItem[]) {
+  constructor(list: FindUserIpListItem[]) {
     Object.assign(this, list);
   }
 }

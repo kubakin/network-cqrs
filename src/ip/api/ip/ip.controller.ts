@@ -18,8 +18,6 @@ import {
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateOrderCommand } from '../../application/command/create.order.command';
 import { generateString } from '@nestjs/typeorm';
-import { FindIpListQuery } from '../../application/query/find.ip.list.query';
-import { FindIpListResult } from '../../application/query/find.ip.list.result';
 import { UserGuard } from '../../../../lib/authorization/src/user.guard';
 import { UserId } from '../../../../lib/authorization/src/jwt/user-id.decorator';
 import {
@@ -33,6 +31,8 @@ import {
 import { AssignRequestCommand } from '../../application/command/assign.request.command';
 import { UnassignRequestCommand } from '../../application/command/unassign.request.command';
 import { DeleteRequestCommand } from '../../application/command/delete.request.command';
+import { FindUserIpListResult } from '../../application/query/find.ip.list.result';
+import { FindUserIpListQuery } from '../../application/query/find.ip.list.query';
 
 @Controller('/api/ipam/ip')
 @ApiTags('network')
@@ -69,10 +69,10 @@ export class IpController {
   @Get('/')
   @ApiResponse({
     status: HttpStatus.OK,
-    type: FindIpListResult,
+    type: FindUserIpListResult,
   })
   async ipList(@UserId() userId: string, @Query() filter: IpFilter) {
-    const query = new FindIpListQuery({ ...filter, userId: userId });
+    const query = new FindUserIpListQuery({ ...filter, userId: userId });
     const result: any = await this.queryBus.execute(query);
     return result.result;
   }

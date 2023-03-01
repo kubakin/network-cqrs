@@ -11,6 +11,7 @@ export class UnassignFailedHandler {
   @RabbitSubscribe({
     exchange: 'client',
     routingKey: ['ipam.event.ip.customer.unassign.failed'],
+    queue: 'network_assignment',
     queueOptions: {
       autoDelete: true,
     },

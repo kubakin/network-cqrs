@@ -15,6 +15,7 @@ export class CreateOrderHandler
   @Inject() private readonly ipFactory: IpFactory;
 
   async execute(command: CreateOrderCommand): Promise<void> {
+    console.log('CreateOrderCommand');
     let assignment: Assignment;
     if (command.vdsId) {
       assignment = new Assignment(command.vdsId, AssignmentType.vm);

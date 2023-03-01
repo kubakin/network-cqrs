@@ -1,11 +1,11 @@
 import { AssignmentType } from '../../domain/enitites/assignment';
 
-export class FindIpListQuery {
-  readonly userId?: string;
+export class FindUserIpListQuery {
+  readonly userId: string;
   readonly assignmentId?: string;
   readonly assignmentType?: AssignmentType;
 
-  constructor(params: FindIpListQuery) {
+  constructor(params: FindUserIpListQuery) {
     Object.assign(this, params);
   }
 }

@@ -9,6 +9,7 @@ import { BadRequestException, Logger } from '@nestjs/common';
 import { generateString } from '@nestjs/typeorm';
 import { SubscriptionDeleteProcessStartedEvent } from './event/subscription.delete.process.started.event';
 import { InitiatorType } from '../../external/subscription/subscription.messages';
+import { DeleteRequestedEvent } from './event/delete.requested.event';
 
 export type IpEssentialProperties = Readonly<
   Required<{
@@ -38,6 +39,7 @@ export class Ip {
   assign: (assignmentId: string, assignmentType: AssignmentType) => void;
   unnassignRequest: () => void;
   assignRequest: () => void;
+  deleteRequest: () => void;
   commit: () => void;
   orderCreated: () => void;
   ipCreated: () => void;
@@ -51,6 +53,7 @@ export class Ip {
   unassignFailed: () => void;
   assignFailed: () => void;
   unassignConfirmed: () => void;
+  deleteConfirmed: () => void;
   assignConfirmed: () => void;
   deleteProcessStart: () => string | undefined;
 }
@@ -102,20 +105,20 @@ export class IpDomain extends AggregateRoot implements Ip {
   }
 
   unassignConfirmed() {
-    if (this.primary || this.status === 'deleting') {
-      this.deleteConfirmed();
-      return;
-    }
     this.logger.debug(`${this.address.address} unassign confirmed`);
 
     this.assignment.reset();
 
     this.status = 'active';
+
+    if (this.primary) {
+      this.delete();
+    }
   }
 
   deleteConfirmed() {
     this.logger.debug(`${this.address.address} delete confirmed`);
-
+    this.deleted = true;
     this.status = 'deleted';
   }
 
@@ -133,10 +136,11 @@ export class IpDomain extends AggregateRoot implements Ip {
   }
 
   unnassign() {
+    this.status = 'unassigning';
+
     if (!this?.assignment?.assignmentId) {
       throw new BadRequestException('Ip without assignment');
     }
-    this.status = 'unassigning';
     this.unnassignRequest();
   }
 
@@ -144,8 +148,9 @@ export class IpDomain extends AggregateRoot implements Ip {
     if (this?.assignment?.assignmentId) {
       throw new BadRequestException('Already assigned');
     }
-    this.assignment = new Assignment(assignmentId, assignmentType);
     this.status = 'assigning';
+
+    this.assignment = new Assignment(assignmentId, assignmentType);
     this.assignRequest();
   }
 
@@ -168,13 +173,8 @@ export class IpDomain extends AggregateRoot implements Ip {
   }
 
   delete() {
-    this.deleted = true;
-    if (!this?.assignment?.assignmentId) {
-      this.status = 'deleted';
-    } else {
-      this.status = 'deleting';
-      this.unnassignRequest();
-    }
+    this.status = 'deleting';
+    this.deleteRequest();
   }
 
   unnassignRequest() {
@@ -189,6 +189,14 @@ export class IpDomain extends AggregateRoot implements Ip {
         // this.assignment.assignmentType,
       ),
     );
+  }
+
+  deleteRequest() {
+    if (this.assignment?.assignmentId) {
+      this.unnassignRequest();
+    } else {
+      this.apply(new DeleteRequestedEvent(this.id));
+    }
   }
 
   assignRequest() {

@@ -1,6 +1,6 @@
-import { FindIpListResult } from './find.ip.list.result';
-import { FindIpListQuery } from './find.ip.list.query';
+import { FindUserIpListResult } from './find.ip.list.result';
+import { FindUserIpListQuery } from './find.ip.list.query';
 
-export interface IpQuery {
-  find: (options: FindIpListQuery) => Promise<FindIpListResult>;
+export interface UserIpQuery {
+  find: (options: FindUserIpListQuery) => Promise<FindUserIpListResult>;
 }

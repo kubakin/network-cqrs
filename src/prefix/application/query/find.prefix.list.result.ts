@@ -10,11 +10,6 @@ class FindUserPrefixListItem {
   readonly dataCenterName: string;
 }
 
-export class FindIpListResponse<T> {
-  @ApiProperty()
-  list: T[];
-}
-
 export class FindUserPrefixListResult implements IQueryResult {
   @ApiProperty({ type: FindUserPrefixListItem, isArray: true })
   result: FindUserPrefixListItem[];

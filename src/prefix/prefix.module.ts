@@ -13,6 +13,7 @@ import { SubscriptionActivatedHandler } from './application/event/subscription.a
 import { FindUserPrefixListHandler } from './application/query/find.prefix.list.handler';
 import { FindAdminPrefixListHandler } from './application/query/admin/find.prefix.list.handler';
 import { PrefixAdminQueryImplement } from './infrastructure/query/admin/prefix.admin.query.implement';
+import { PrefixAdminController } from './api/prefix.admin.controller';
 
 const infrastructure = [
   {
@@ -38,7 +39,7 @@ const application = [
   FindAdminPrefixListHandler,
 ];
 
-const api = [PrefixController];
+const api = [PrefixController, PrefixAdminController];
 
 @Module({
   imports: [CqrsModule, AuthorizationOnlyModule, NetboxApiModule],
