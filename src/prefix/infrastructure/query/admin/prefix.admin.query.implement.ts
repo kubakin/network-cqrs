@@ -15,7 +15,6 @@ export class PrefixAdminQueryImplement implements AdminPrefixQuery {
       where: {
         deleted: false,
         initialized: true,
-        status: 'active',
         ...query.filter,
       },
       order: {

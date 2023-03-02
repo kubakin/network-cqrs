@@ -14,6 +14,11 @@ import { FindUserPrefixListHandler } from './application/query/find.prefix.list.
 import { FindAdminPrefixListHandler } from './application/query/admin/find.prefix.list.handler';
 import { PrefixAdminQueryImplement } from './infrastructure/query/admin/prefix.admin.query.implement';
 import { PrefixAdminController } from './api/prefix.admin.controller';
+import { PrefixAnnounceHandler } from './application/command/prefix.announce.handler';
+import { PrefixBlockHandler } from './application/command/prefix.block.handler';
+import { PrefixRejectHandler } from './application/command/prefix.reject.handler';
+import { PrefixUnblockHandler } from './application/command/prefix.unblock.handler';
+import { NetboxService } from './infrastructure/integration/netbox.service';
 
 const infrastructure = [
   {
@@ -29,6 +34,7 @@ const infrastructure = [
     provide: InjectionToken.ADMIN_PREFIX_QUERY,
     useClass: PrefixAdminQueryImplement,
   },
+  NetboxService,
 ];
 
 const application = [
@@ -37,6 +43,10 @@ const application = [
   SubscriptionActivatedHandler,
   FindUserPrefixListHandler,
   FindAdminPrefixListHandler,
+  PrefixAnnounceHandler,
+  PrefixBlockHandler,
+  PrefixRejectHandler,
+  PrefixUnblockHandler,
 ];
 
 const api = [PrefixController, PrefixAdminController];

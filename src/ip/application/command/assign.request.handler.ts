@@ -18,6 +18,7 @@ export class AssignRequestHandler
       command.userId,
     );
 
+    ip.readyToAction();
     ip.assign(command.assignmentId, command.assignmentType as any);
 
     await this.ipRepository.save(ip);

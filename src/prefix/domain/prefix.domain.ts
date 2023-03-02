@@ -34,7 +34,13 @@ export class Prefix {
   delete: () => void;
   deleteProcessStart: () => string | undefined;
   getSubscriptionId: () => string;
+  announce: () => void;
   startAnnouncingProcess: () => void;
+  reject: () => void;
+  block: () => void;
+  unblock: () => void;
+  getPrefix: () => string;
+  getDataCenter: () => string;
 }
 
 export class PrefixDomain extends AggregateRoot implements Prefix {
@@ -105,5 +111,13 @@ export class PrefixDomain extends AggregateRoot implements Prefix {
 
   getSubscriptionId() {
     return this.subscriptionId;
+  }
+
+  getPrefix() {
+    return this.prefix;
+  }
+
+  getDataCenter() {
+    return this.dataCenter;
   }
 }

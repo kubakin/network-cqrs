@@ -56,6 +56,7 @@ export class Ip {
   deleteConfirmed: () => void;
   assignConfirmed: () => void;
   deleteProcessStart: () => string | undefined;
+  readyToAction: () => void;
 }
 
 export class IpDomain extends AggregateRoot implements Ip {
@@ -86,6 +87,13 @@ export class IpDomain extends AggregateRoot implements Ip {
         this.userId,
       ),
     );
+  }
+
+  readyToAction() {
+    if (this.status === 'active') {
+      return;
+    }
+    throw new BadRequestException(`Current operation: ${this.status}`);
   }
 
   ipCreated() {

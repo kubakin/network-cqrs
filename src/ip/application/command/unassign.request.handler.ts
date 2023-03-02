@@ -18,6 +18,7 @@ export class UnassignRequestHandler
       command.userId,
     );
 
+    ip.readyToAction();
     ip.unnassign();
 
     await this.ipRepository.save(ip);
