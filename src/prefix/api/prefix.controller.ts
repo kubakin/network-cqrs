@@ -1,9 +1,4 @@
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
 import { UserGuard } from '../../../lib/authorization/src/user.guard';
 import { UserId } from '../../../lib/authorization/src/jwt/user-id.decorator';
@@ -22,18 +17,9 @@ export class PrefixController {
 
   @Post('/')
   @ApiOkResponse({ type: AnnounceInvoicesId })
-  async announceRequest(
-    @UserId() userId: string,
-    @Body() body: AnnouncePrefix,
-  ): Promise<AnnounceInvoicesId> {
+  async announceRequest(@UserId() userId: string, @Body() body: AnnouncePrefix): Promise<AnnounceInvoicesId> {
     const invoices = await this.commandBus.execute(
-      new PrefixCreateCommand(
-        body.prefixes,
-        body.asNumber,
-        body.version,
-        userId,
-        body.dataCenterName,
-      ),
+      new PrefixCreateCommand(body.prefixes, body.asNumber, body.version, userId, body.dataCenterName),
     );
     return {
       invoices: invoices,
@@ -45,11 +31,11 @@ export class PrefixController {
     status: HttpStatus.OK,
     type: FindUserPrefixListResult,
   })
-  async userPrefixes(@UserId() userId: string) {
+  async userPrefixes(@UserId() userId: string): Promise<FindUserPrefixListResult> {
     const query = new FindUserPrefixListQuery({
       userId,
     });
     const result: FindUserPrefixListResult = await this.queryBus.execute(query);
-    return result.result;
+    return result;
   }
 }

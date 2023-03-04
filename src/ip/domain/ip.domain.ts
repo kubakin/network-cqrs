@@ -31,11 +31,10 @@ export type IptOptionalProperties = Readonly<
   }>
 >;
 
-export type IpProperties = IpEssentialProperties &
-  Required<IptOptionalProperties>;
+export type IpProperties = IpEssentialProperties & Required<IptOptionalProperties>;
 
 export class Ip {
-  unnassign: () => void;
+  unnassign: (force?: boolean) => void;
   assign: (assignmentId: string, assignmentType: AssignmentType) => void;
   unnassignRequest: () => void;
   assignRequest: () => void;
@@ -78,15 +77,7 @@ export class IpDomain extends AggregateRoot implements Ip {
   }
 
   orderCreated() {
-    this.apply(
-      new CreatedOrderEvent(
-        this.id,
-        this.subscriptionId,
-        this.address.family,
-        this.dataCenter,
-        this.userId,
-      ),
-    );
+    this.apply(new CreatedOrderEvent(this.id, this.subscriptionId, this.address.family, this.dataCenter, this.userId));
   }
 
   readyToAction() {
@@ -97,14 +88,7 @@ export class IpDomain extends AggregateRoot implements Ip {
   }
 
   ipCreated() {
-    this.apply(
-      new CreatedIpEvent(
-        this.id,
-        this.address.family,
-        this.address.address,
-        this.userId,
-      ),
-    );
+    this.apply(new CreatedIpEvent(this.id, this.address.family, this.address.address, this.userId));
   }
 
   assignConfirmed() {
@@ -117,11 +101,17 @@ export class IpDomain extends AggregateRoot implements Ip {
 
     this.assignment.reset();
 
-    this.status = 'active';
-
     if (this.primary) {
       this.delete();
+      return;
     }
+
+    if (this.status === 'deleting') {
+      this.delete();
+      return;
+    }
+
+    this.status = 'active';
   }
 
   deleteConfirmed() {
@@ -140,14 +130,19 @@ export class IpDomain extends AggregateRoot implements Ip {
   unassignFailed() {
     this.logger.error(`${this.address.address} unassign failed`);
 
+    if (this.status === 'deleting') return;
     this.status = 'active';
   }
 
-  unnassign() {
+  unnassign(force = false) {
     this.status = 'unassigning';
 
     if (!this?.assignment?.assignmentId) {
       throw new BadRequestException('Ip without assignment');
+    }
+    if (force) {
+      this.unassignConfirmed();
+      return;
     }
     this.unnassignRequest();
   }
@@ -181,8 +176,10 @@ export class IpDomain extends AggregateRoot implements Ip {
   }
 
   delete() {
-    this.status = 'deleting';
-    this.deleteRequest();
+    if (this.initialized && !this.deleted) {
+      this.status = 'deleting';
+      this.deleteRequest();
+    }
   }
 
   unnassignRequest() {

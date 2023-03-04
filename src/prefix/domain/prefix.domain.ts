@@ -2,6 +2,10 @@ import { AggregateRoot } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 import { generateString } from '@nestjs/typeorm';
 import { OrderCreatedEvent } from './event/order.created.event';
+import { ResetPrefixRequestedEvent } from './event/reset.prefix.requested.event';
+import { ResetConfirmedEvent } from './event/reset.confirmed.event';
+import { SubscriptionDeleteProcessStartedEvent } from '../../ip/domain/event/subscription.delete.process.started.event';
+import { InitiatorType } from '../../external/subscription/subscription.messages';
 
 export type PrefixEssentialProperties = Readonly<
   Required<{
@@ -24,23 +28,25 @@ export type PrefixOptionalProperties = Readonly<
   }>
 >;
 
-export type PrefixProperties = PrefixEssentialProperties &
-  Required<PrefixOptionalProperties>;
+export type PrefixProperties = PrefixEssentialProperties & Required<PrefixOptionalProperties>;
 
 export class Prefix {
   commit: () => void;
   orderCreated: (firstOrder?: boolean) => void;
   prefixCreated: () => void;
   delete: () => void;
-  deleteProcessStart: () => string | undefined;
+  deleteConfirm: () => void;
+  deleteProcessStart: () => string;
   getSubscriptionId: () => string;
   announce: () => void;
   startAnnouncingProcess: () => void;
-  reject: () => void;
   block: () => void;
+  blockConfirm: () => void;
   unblock: () => void;
   getPrefix: () => string;
   getDataCenter: () => string;
+  getStatus: () => string;
+  resetConfirm: () => void;
 }
 
 export class PrefixDomain extends AggregateRoot implements Prefix {
@@ -76,18 +82,33 @@ export class PrefixDomain extends AggregateRoot implements Prefix {
     );
   }
 
+  deleteProcessStart() {
+    const invoiceId = generateString();
+    this.apply(
+      new SubscriptionDeleteProcessStartedEvent({
+        id: this.subscriptionId,
+        invoiceId: invoiceId,
+        initiator: InitiatorType.USER,
+      }),
+    );
+    return invoiceId;
+  }
+
   prefixCreated() {}
 
   deleteConfirmed() {}
+
+  resetConfirm() {
+    this.apply(new ResetConfirmedEvent(this.id));
+  }
 
   startAnnouncingProcess() {
     this.initialized = true;
     this.status = 'announcing';
   }
 
-  reject() {
-    this.status = 'rejected';
-    this.deleted = true;
+  reset() {
+    this.apply(new ResetPrefixRequestedEvent(this.id));
   }
 
   announce() {
@@ -96,18 +117,25 @@ export class PrefixDomain extends AggregateRoot implements Prefix {
 
   block() {
     this.isBlocked = true;
+    this.reset();
+  }
+
+  blockConfirm() {
+    this.status = 'blocked';
+  }
+
+  deleteConfirm() {
+    this.status = 'deleted';
   }
 
   unblock() {
     this.isBlocked = false;
   }
 
-  deleteProcessStart() {
-    const invoiceId = generateString();
-    return invoiceId;
+  delete() {
+    this.status = 'deleting';
+    this.reset();
   }
-
-  delete() {}
 
   getSubscriptionId() {
     return this.subscriptionId;
@@ -119,5 +147,9 @@ export class PrefixDomain extends AggregateRoot implements Prefix {
 
   getDataCenter() {
     return this.dataCenter;
+  }
+
+  getStatus() {
+    return this.status;
   }
 }

@@ -5,17 +5,15 @@ import { IpRepository } from '../../domain/ip.repository';
 import { AssignmentResetCommand } from './assignment.reset.command';
 
 @CommandHandler(AssignmentResetCommand)
-export class AssignmentResetHandler
-  implements ICommandHandler<AssignmentResetCommand, void>
-{
+export class AssignmentResetHandler implements ICommandHandler<AssignmentResetCommand, void> {
   @Inject(InjectionToken.IP_REPOSITORY)
   private readonly ipRepository: IpRepository;
 
   // @Transactional()
   async execute(command: AssignmentResetCommand): Promise<void> {
     const ips = await this.ipRepository.findByAssignment(command.assignmentId);
-    ips.map(async (ip) => {
-      ip.unnassign();
+    ips.map(async ip => {
+      ip.unnassign(true);
       await this.ipRepository.save(ip);
       ip.commit();
     });

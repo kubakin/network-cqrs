@@ -1,10 +1,6 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import {
-  ClassSerializerInterceptor,
-  INestApplication,
-  ValidationPipe,
-} from '@nestjs/common';
+import { ClassSerializerInterceptor, INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
@@ -26,6 +22,8 @@ function setupSwagger(app: INestApplication): void {
 }
 
 async function bootstrap() {
+  const logger = new Logger('App module');
+
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
@@ -49,7 +47,8 @@ async function bootstrap() {
   // app.useGlobalInterceptors(new LoggingInterceptor());
   // app.useGlobalFilters(new HttpExceptionFilter());
   setupSwagger(app);
-  await app.listen(3002);
+  await app.listen(process.env.PORT || 3002);
+  logger.debug(`App listening on port ${process.env.PORT || 3002}`);
 }
 
 bootstrap();

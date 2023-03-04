@@ -4,6 +4,7 @@ import { readConnection } from '../../../../lib/db.module';
 import { FindUserIpListQuery } from '../../application/query/find.ip.list.query';
 import { UserIpQuery } from '../../application/query/ip.query';
 import { FindUserIpListResult } from '../../application/query/find.ip.list.result';
+import { Not } from 'typeorm';
 
 @Injectable()
 export class IpQueryImplement implements UserIpQuery {
@@ -13,6 +14,7 @@ export class IpQueryImplement implements UserIpQuery {
         deleted: false,
         initialized: true,
         primary: false,
+        status: Not('deleting'),
         ...query,
       },
       order: {
@@ -20,7 +22,7 @@ export class IpQueryImplement implements UserIpQuery {
       },
     });
     return {
-      result: result.map((ip) => {
+      result: result.map(ip => {
         return {
           id: ip.id,
           status: ip.status,

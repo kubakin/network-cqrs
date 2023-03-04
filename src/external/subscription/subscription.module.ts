@@ -9,15 +9,18 @@ import { SubscriptionDeleteProcessStartedHandler } from './event/subscription.de
 @Module({
   imports: [
     CqrsModule,
-    RabbitMQModule.forRoot(RabbitMQModule, {
-      exchanges: [
-        {
-          name: 'client',
-          type: 'topic',
-        },
-      ],
-      uri: 'amqp://localhost:5672',
-      connectionInitOptions: { wait: false },
+    RabbitMQModule.forRootAsync(RabbitMQModule, {
+      inject: [],
+      useFactory: () => ({
+        connectionInitOptions: { timeout: 20_000 },
+        exchanges: [
+          {
+            name: 'client',
+            type: 'topic',
+          },
+        ],
+        uri: process.env.RABBIT_URL.split(','),
+      }),
     }),
   ],
   controllers: [],

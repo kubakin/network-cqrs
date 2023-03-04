@@ -1,39 +1,8 @@
-import {
-  BaseEntity,
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryColumn,
-} from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryColumn } from 'typeorm';
 
 export enum AssignmentType {
   vm = 'vm',
   ds = 'ds',
-}
-
-export class IpCreateCustomerEntity {
-  address?: string;
-  invoiceId: string;
-  family: 4 | 6;
-  userId: string;
-  assignmentId?: string;
-  assignmentType?: AssignmentType;
-  dataCenter: string;
-}
-
-export class IpCreatePrimaryEntity {
-  address: string;
-  family: 4 | 6;
-  userId: string;
-  assignmentId: string;
-  assignmentType: AssignmentType;
-  dataCenter: string;
-}
-
-export class IpCreateAnnouncedEntity {
-  address?: string;
-  assignmentId?: string;
-  assignmentType?: AssignmentType;
 }
 
 @Entity('ip')
@@ -44,7 +13,7 @@ export class IpEntity extends BaseEntity {
   @Column('inet', { nullable: true, unique: false })
   address: string;
 
-  @Column()
+  @Column({ nullable: true })
   family: number;
 
   @Column({ nullable: true })
@@ -78,7 +47,7 @@ export class IpEntity extends BaseEntity {
   @Column({ nullable: true })
   dataCenterId: number;
 
-  @Column({ default: false })
+  @Column({ default: true })
   initialized: boolean;
 
   @Column({ default: false })

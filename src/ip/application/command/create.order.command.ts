@@ -6,9 +6,10 @@ export class CreateOrderCommand implements ICommand {
     readonly family: number,
     readonly dataCenter: string,
     readonly invoiceId: string,
-    readonly primary: boolean,
     readonly userId: string,
     readonly dedicId: string | null,
     readonly vdsId: string | null,
+    readonly address?: string,
+    readonly prefix?: string,
   ) {}
 }

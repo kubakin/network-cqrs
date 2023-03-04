@@ -30,6 +30,8 @@ import { DeleteRequestedHandler } from './application/event/delete.requested.han
 import { RedisModule, RedisService } from 'nestjs-redis';
 import { ConfigService } from '@nestjs/config';
 import { RedisLockModule } from '@huangang/nestjs-simple-redis-lock/index';
+import { FindFreeAddressHandler } from './application/query/find.free.address.handler';
+import { IpDeleteHandler } from './application/command/ip.delete.handler';
 
 const infrastructure = [
   {
@@ -40,7 +42,6 @@ const infrastructure = [
     provide: InjectionToken.IP_QUERY,
     useClass: IpQueryImplement,
   },
-
   {
     provide: InjectionToken.ADMIN_IP_QUERY,
     useClass: IpAdminQueryImplement,
@@ -65,6 +66,8 @@ const applications = [
   DeleteRequestHandler,
   FindAdminIpListHandler,
   DeleteRequestedHandler,
+  FindFreeAddressHandler,
+  IpDeleteHandler,
 ];
 const api = [IpController, IpAdminController];
 
@@ -78,9 +81,7 @@ const api = [IpController, IpAdminController];
       // eslint-disable-next-line @typescript-eslint/require-await
       useFactory: async (configService: ConfigService) => ({
         name: 'default',
-        url: `${configService.get<string>(
-          'REDIS_HOST',
-        )}:${configService.get<string>('REDIS_PORT')}`,
+        url: `${configService.get<string>('REDIS_HOST')}:${configService.get<string>('REDIS_PORT')}`,
       }),
     }),
     RedisLockModule.registerAsync({
@@ -92,13 +93,7 @@ const api = [IpController, IpAdminController];
     }),
   ],
   controllers: [...api],
-  providers: [
-    NetboxService,
-    NetboxApi,
-    IpFactory,
-    ...infrastructure,
-    ...applications,
-  ],
+  providers: [NetboxService, NetboxApi, IpFactory, ...infrastructure, ...applications],
   exports: [],
 })
 export class IpModule {}

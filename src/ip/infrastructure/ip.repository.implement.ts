@@ -14,7 +14,7 @@ export class IpRepositoryImplement implements IpRepository {
 
   async save(data: Ip | Ip[]): Promise<void> {
     const models = Array.isArray(data) ? data : [data];
-    const entities = models.map((model) => this.modelToEntity(model));
+    const entities = models.map(model => this.modelToEntity(model));
     await writeConnection.manager.getRepository(IpEntity).save(entities);
   }
 
@@ -28,7 +28,7 @@ export class IpRepositoryImplement implements IpRepository {
   async findById(id: string): Promise<Ip | null> {
     const entity = await writeConnection.manager
       .getRepository(IpEntity)
-      .findOneBy({ id });
+      .findOneBy({ id, initialized: true, deleted: false });
     return entity ? this.entityToModel(entity) : null;
   }
 
@@ -36,36 +36,32 @@ export class IpRepositoryImplement implements IpRepository {
     const entities = await writeConnection.manager
       .getRepository(IpEntity)
       .find({ where: { deleted: false, initialized: true } });
-    return entities.map((entity) => this.entityToModel(entity));
+    return entities.map(entity => this.entityToModel(entity));
   }
 
   async findByStatus(status: string[]): Promise<Ip[]> {
-    const entities = await writeConnection.manager
-      .getRepository(IpEntity)
-      .find({
-        where: { initialized: true, status: In(status) },
-      });
-    return entities.map((entity) => this.entityToModel(entity));
+    const entities = await writeConnection.manager.getRepository(IpEntity).find({
+      where: { initialized: true, status: In(status) },
+    });
+    return entities.map(entity => this.entityToModel(entity));
   }
 
   async findByAddress(address: string): Promise<Ip[]> {
     const entities = await writeConnection.manager
       .getRepository(IpEntity)
-      .findBy({ address });
-    return entities.map((entity) => this.entityToModel(entity));
+      .findBy({ address, initialized: true, deleted: false });
+    return entities.map(entity => this.entityToModel(entity));
   }
 
   async findByAssignment(assignmentId: string): Promise<Ip[]> {
     const entities = await writeConnection.manager
       .getRepository(IpEntity)
-      .find({ where: { assignmentId: assignmentId } });
-    return entities.map((entity) => this.entityToModel(entity));
+      .find({ where: { assignmentId: assignmentId, initialized: true, deleted: false } });
+    return entities.map(entity => this.entityToModel(entity));
   }
 
   async findBySubscriptionId(subscriptionId: string): Promise<Ip> {
-    const entity = await writeConnection.manager
-      .getRepository(IpEntity)
-      .findOneBy({ subscriptionId });
+    const entity = await writeConnection.manager.getRepository(IpEntity).findOneBy({ subscriptionId, deleted: false });
     return entity ? this.entityToModel(entity) : null;
   }
 

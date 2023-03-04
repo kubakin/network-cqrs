@@ -16,9 +16,13 @@ import { PrefixAdminQueryImplement } from './infrastructure/query/admin/prefix.a
 import { PrefixAdminController } from './api/prefix.admin.controller';
 import { PrefixAnnounceHandler } from './application/command/prefix.announce.handler';
 import { PrefixBlockHandler } from './application/command/prefix.block.handler';
-import { PrefixRejectHandler } from './application/command/prefix.reject.handler';
+import { PrefixDeleteRequestHandler } from './application/command/prefix.delete.request.handler';
 import { PrefixUnblockHandler } from './application/command/prefix.unblock.handler';
 import { NetboxService } from './infrastructure/integration/netbox.service';
+import { FindUserPrefixHandler } from './application/query/find.user.prefix.handler';
+import { ResetPrefixRequestedHandler } from './application/event/reset.prefix.requested.handler';
+import { BlockResetConfirmedHandler } from './application/event/block.reset.confirmed.handler';
+import { DeleteResetConfirmedHandler } from './application/event/delete.reset.confirmed.handler';
 
 const infrastructure = [
   {
@@ -45,8 +49,12 @@ const application = [
   FindAdminPrefixListHandler,
   PrefixAnnounceHandler,
   PrefixBlockHandler,
-  PrefixRejectHandler,
+  PrefixDeleteRequestHandler,
   PrefixUnblockHandler,
+  FindUserPrefixHandler,
+  ResetPrefixRequestedHandler,
+  BlockResetConfirmedHandler,
+  DeleteResetConfirmedHandler,
 ];
 
 const api = [PrefixController, PrefixAdminController];

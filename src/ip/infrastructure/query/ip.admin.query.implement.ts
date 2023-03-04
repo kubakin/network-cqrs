@@ -22,7 +22,7 @@ export class IpAdminQueryImplement implements AdminIpQuery {
     return {
       page: 1,
       size: result.length,
-      result: result.map((ip) => {
+      result: result.map(ip => {
         return {
           id: ip.id,
           status: ip.status,

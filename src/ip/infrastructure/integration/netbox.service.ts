@@ -5,29 +5,12 @@ import { NetboxApi } from '../../../../lib/netbox-api/src';
 export class NetboxService {
   constructor(private netboxApi: NetboxApi) {}
 
-  async onApplicationBootstrap() {
-    return;
-    return;
-    const ips = await this.netboxApi.ipam.ipamIpAddressesList({
-      limit: 0,
-      parent: '193.242.153.0/24',
-    });
-    ips.data.results.map(async (ip: any) => {
-      if (ip.custom_fields.ip_instance_id) {
-        await this.netboxApi.ipam.ipamIpAddressesDelete({ id: ip.id });
-      }
-    });
-  }
-
-  async delete(id: number) {
+  private async delete(id: number) {
     await this.netboxApi.ipam.ipamIpAddressesDelete({ id });
   }
 
   async deleteByInstance(id: string) {
-    const result = await this.netboxApi.ipam.ipamIpAddressesList(
-      {},
-      { query: { cf_ip_instance_id: id } },
-    );
+    const result = await this.netboxApi.ipam.ipamIpAddressesList({}, { query: { cf_ip_instance_id: id } });
     const ip = result.data.results?.[0];
     if (ip) {
       await this.delete(ip.id);
@@ -46,28 +29,22 @@ export class NetboxService {
     });
   }
 
-  async findFreeCustomerAddress(
-    dataCenterName: string,
-    family: number,
-    prefix?: string,
-  ) {
-    const dataCenter = (
-      await this.netboxApi.dcim.dcimSitesList({ name: dataCenterName })
-    ).data.results[0];
+  async findFreeCustomerAddress(dataCenterName?: string, family?: number, prefix?: string) {
+    const dataCenter =
+      dataCenterName && (await this.netboxApi.dcim.dcimSitesList({ name: dataCenterName })).data?.results?.[0];
     const result = await this.netboxApi.ipam.ipamPrefixesList({
       limit: 0,
       isPool: 'true',
-      site: `${dataCenter.slug}`,
+      site: dataCenter?.slug,
       family,
       role: prefix ? undefined : 'customer',
       prefix,
     });
     for (let i = 0; i < result.data.count; i++) {
       const currentPrefix = result.data.results[i];
-      const availableIpsResponse =
-        await this.netboxApi.ipam.ipamPrefixesAvailableIpsRead({
-          id: currentPrefix.id,
-        });
+      const availableIpsResponse = await this.netboxApi.ipam.ipamPrefixesAvailableIpsRead({
+        id: currentPrefix.id,
+      });
       if (availableIpsResponse.data.length === 0) {
         continue;
       }

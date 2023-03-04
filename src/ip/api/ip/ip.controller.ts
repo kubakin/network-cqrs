@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,12 +10,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateOrderCommand } from '../../application/command/create.order.command';
 import { generateString } from '@nestjs/typeorm';
@@ -22,6 +18,7 @@ import { UserGuard } from '../../../../lib/authorization/src/user.guard';
 import { UserId } from '../../../../lib/authorization/src/jwt/user-id.decorator';
 import {
   BuyIp,
+  DistributeFromUserPrefixDto,
   IpAssign,
   IpBuyInvoiceId,
   IpDeleteInvoiceId,
@@ -33,6 +30,11 @@ import { UnassignRequestCommand } from '../../application/command/unassign.reque
 import { DeleteRequestCommand } from '../../application/command/delete.request.command';
 import { FindUserIpListResult } from '../../application/query/find.ip.list.result';
 import { FindUserIpListQuery } from '../../application/query/find.ip.list.query';
+import { FindUserPrefixQuery } from '../../../prefix/application/query/find.user.prefix.query';
+import { IpCreateCommand } from '../../application/command/ip.create.command';
+import { FindUserPrefixResult } from '../../../prefix/application/query/find.user.prefix.result';
+import { FindFreeAddressQuery } from '../../application/query/find.free.address.query';
+import { FindFreeAddressResult } from '../../application/query/find.free.address.result';
 
 @Controller('/api/ipam/ip')
 @ApiTags('network')
@@ -50,7 +52,6 @@ export class IpController {
       body.version,
       body.dataCenterName,
       invoiceId,
-      false,
       userId,
       body.dedicId,
       body.vdsId,
@@ -71,18 +72,14 @@ export class IpController {
     status: HttpStatus.OK,
     type: FindUserIpListResult,
   })
-  async ipList(@UserId() userId: string, @Query() filter: IpFilter) {
+  async ipList(@UserId() userId: string, @Query() filter: IpFilter): Promise<FindUserIpListResult> {
     const query = new FindUserIpListQuery({ ...filter, userId: userId });
-    const result: any = await this.queryBus.execute(query);
-    return result.result;
+    const result: FindUserIpListResult = await this.queryBus.execute(query);
+    return result;
   }
 
   @Patch(':id/reverse-dns')
-  async ipSetReverseDns(
-    @UserId() userId,
-    @Param('id') id: string,
-    @Body() data: SetReverseDns,
-  ) {
+  async ipSetReverseDns(@UserId() userId, @Param('id') id: string, @Body() data: SetReverseDns) {
     // await this.commandBus.handle(
     //     Messages.build(IpUpdateReverseDns, {
     //       id,
@@ -98,19 +95,8 @@ export class IpController {
   }
 
   @Post(':id/assign')
-  async ipAssign(
-    @UserId() userId,
-    @Param('id') id: string,
-    @Body() body: IpAssign,
-  ) {
-    await this.commandBus.execute(
-      new AssignRequestCommand(
-        id,
-        body.assignmentId,
-        body.assignmentType,
-        userId,
-      ),
-    );
+  async ipAssign(@UserId() userId, @Param('id') id: string, @Body() body: IpAssign) {
+    await this.commandBus.execute(new AssignRequestCommand(id, body.assignmentId, body.assignmentType, userId));
   }
 
   @Post(':id/deassign')
@@ -119,13 +105,41 @@ export class IpController {
   }
 
   @Get('/price')
+  @ApiOkResponse({ type: String })
   async ipPrice() {
-    return '150';
+    return process.env.IP_PRICE;
   }
 
   @Get('/free/:prefixId')
-  async freeAddressFromPrefix(@Param('prefixId') prefixId: string) {}
+  @ApiOkResponse({ type: String })
+  async findFreeAddress(@UserId() userId, @Param('prefixId') prefixId: string): Promise<string> {
+    const prefix: FindUserPrefixResult = await this.queryBus.execute(new FindUserPrefixQuery({ id: prefixId, userId }));
+    if (!prefix) throw new BadRequestException('Prefix not found');
+    const response: FindFreeAddressResult = await this.queryBus.execute(
+      new FindFreeAddressQuery({ prefix: prefix.prefix, family: prefix.family, dataCenterName: prefix.dataCenterName }),
+    );
+    return response?.address || '';
+  }
 
-  @Post('/get-out/:prefixId')
-  async getOutFromPrefix(@Param('prefixId') prefixId: string) {}
+  @Post('/distribute')
+  async distributeIp(@UserId() userId, @Body() dto: DistributeFromUserPrefixDto) {
+    const prefix: FindUserPrefixResult = await this.queryBus.execute(
+      new FindUserPrefixQuery({ id: dto.prefixId, userId }),
+    );
+    if (!prefix) throw new BadRequestException('Prefix not found');
+    await this.commandBus.execute(
+      new IpCreateCommand(
+        generateString(),
+        userId,
+        prefix.dataCenterName,
+        prefix.family,
+        false,
+        null,
+        dto.assignmentId || null,
+        dto.assignmentType || null,
+        dto.address,
+        prefix.prefix,
+      ),
+    );
+  }
 }

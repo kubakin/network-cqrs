@@ -1,17 +1,7 @@
 import { AssignmentType } from '../../domain/enitites/assignment';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { Expose } from 'class-transformer';
-
-export class IpCreateDto {
-  family: 4 | 6;
-  dataCenterId?: number;
-  dataCenter?: string;
-  assignmentType: AssignmentType;
-  assignmentId: string;
-  userId: string;
-  subscriptionId: string;
-}
 
 export class IpBuyInvoiceId {
   @ApiProperty({ required: true })
@@ -39,16 +29,21 @@ export class IpAssign {
 export class BuyIp {
   @Expose()
   @ApiProperty({ required: false })
+  @IsUUID()
+  @IsOptional()
   vdsId?: string;
   @Expose()
   @ApiProperty({ required: false })
+  @IsUUID()
+  @IsOptional()
   dedicId?: string;
   @Expose()
   @ApiProperty({
     type: Number,
   })
-  @IsNumber()
   @Expose()
+  @IsIn([4, 6])
+  @IsNotEmpty()
   @ApiProperty({ required: true })
   version: 4 | 6;
   @IsString()
@@ -61,12 +56,61 @@ export class BuyIp {
   forNew?: boolean = false;
 }
 
+export class IpBuyAdmin extends BuyIp {
+  @Expose()
+  @ApiProperty()
+  userId: string;
+  @Expose()
+  @ApiProperty()
+  @IsOptional()
+  address: string;
+  @IsOptional()
+  @Expose()
+  @ApiProperty()
+  prefix: string;
+}
+
 export class IpFilter {
+  @IsUUID()
+  @IsOptional()
+  @ApiProperty({ required: false })
   @Expose()
   assignmentId?: string;
+  @IsOptional()
+  @ApiProperty({ required: false })
+  @Expose()
+  @IsString()
+  dataCenter?: string;
+  @IsOptional()
+  @ApiProperty({ required: false })
+  @Expose()
+  @IsIn([4, 6])
+  family?: number;
 }
 
 export class SetReverseDns {
   @ApiProperty()
+  @Expose()
   reverseDns: string;
+}
+
+export class DistributeFromUserPrefixDto {
+  @Expose()
+  @ApiProperty()
+  @IsString()
+  address: string;
+  @Expose()
+  @ApiProperty()
+  @IsUUID()
+  prefixId: string;
+  @Expose()
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsUUID()
+  assignmentId?: string;
+  @Expose()
+  @IsEnum(AssignmentType)
+  @IsOptional()
+  @ApiProperty({ required: false })
+  assignmentType?: AssignmentType;
 }

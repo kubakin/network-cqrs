@@ -10,7 +10,6 @@ type CreateOrderOptions = Readonly<{
   dataCenter: string;
   family: number;
   address?: string;
-  primary: boolean;
   subscriptionId: string | null;
   assignment?: Assignment;
 }>;
@@ -32,6 +31,7 @@ export class IpFactory {
     return this.eventPublisher.mergeObjectContext(
       new IpDomain({
         ...options,
+        primary: false,
         assignment: options.assignment,
         address: new Address(options.family, options.address),
         status: 'created',

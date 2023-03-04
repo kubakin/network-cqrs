@@ -16,12 +16,12 @@ export class OrderCreatedHandler implements IEventHandler<OrderCreatedEvent> {
         userId: event.userId,
         type: SubscriptionType.MONTHLY,
         autoProlong: true,
-        connectionCost: event.isFirst ? '1000' : '0',
+        connectionCost: event.isFirst ? process.env.ANNOUNCE_CONNECTION_COST : '0',
         items: [
           {
             id: event.id,
             discountable: false,
-            monthlyPrice: '1500',
+            monthlyPrice: process.env.ANNOUNCE_PRICE,
             hourlyPrice: '0',
             metadata: {},
             name: `Prefix v${event.version} in ${event.dataCenter}`,
