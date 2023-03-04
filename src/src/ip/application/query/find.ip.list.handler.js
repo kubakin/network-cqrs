@@ -42,65 +42,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.DatabaseModule = exports.readConnection = exports.writeConnection = void 0;
+exports.FindIpListHandler = void 0;
+var cqrs_1 = require("@nestjs/cqrs");
+var find_ip_list_query_1 = require("./find.ip.list.query");
 var common_1 = require("@nestjs/common");
-var typeorm_1 = require("typeorm");
-var ip_entity_1 = require("../src/ip/infrastructure/ip.entity");
-exports.writeConnection = {};
-exports.readConnection = {};
-var DatabaseService = /** @class */ (function () {
-    function DatabaseService() {
-        this.dataSource = new typeorm_1.DataSource({
-            type: 'postgres',
-            entities: [ip_entity_1.IpEntity],
-            logging: false,
-            host: 'localhost',
-            port: 3032,
-            database: 'app',
-            username: 'app',
-            password: 'secret',
-            synchronize: true
-        });
+var injection_token_1 = require("../injection.token");
+var FindIpListHandler = /** @class */ (function () {
+    function FindIpListHandler() {
     }
-    DatabaseService.prototype.onApplicationBootstrap = function () {
+    FindIpListHandler.prototype.execute = function (query) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.dataSource.initialize()];
-                    case 1:
-                        _a.sent();
-                        if (!this.dataSource.isInitialized)
-                            throw new Error('DataSource is not initialized');
-                        exports.writeConnection = this.dataSource.createQueryRunner();
-                        exports.readConnection = this.dataSource.manager;
-                        return [2 /*return*/];
-                }
+                return [2 /*return*/, this.ipQuery.find({})];
             });
         });
     };
-    DatabaseService.prototype.onModuleDestroy = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.dataSource.destroy()];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    return DatabaseService;
+    __decorate([
+        (0, common_1.Inject)(injection_token_1.InjectionToken.IP_QUERY)
+    ], FindIpListHandler.prototype, "ipQuery");
+    FindIpListHandler = __decorate([
+        (0, cqrs_1.QueryHandler)(find_ip_list_query_1.FindIpListQuery)
+    ], FindIpListHandler);
+    return FindIpListHandler;
 }());
-var DatabaseModule = /** @class */ (function () {
-    function DatabaseModule() {
-    }
-    DatabaseModule = __decorate([
-        (0, common_1.Global)(),
-        (0, common_1.Module)({
-            providers: [DatabaseService]
-        })
-    ], DatabaseModule);
-    return DatabaseModule;
-}());
-exports.DatabaseModule = DatabaseModule;
+exports.FindIpListHandler = FindIpListHandler;
